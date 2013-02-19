@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:WSMatching xmlns:ns2="http://www.kth.se/ict/id2208/Matching">
+    <ns2:Macthing>
+        <ns2:OutputServiceName>WineService</ns2:OutputServiceName>
+        <ns2:InputServiceName>DrinkService</ns2:InputServiceName>
+        <ns2:MacthedOperation>
+            <ns2:OutputOperationName>getDrink</ns2:OutputOperationName>
+            <ns2:InputOperationName>getWine</ns2:InputOperationName>
+            <ns2:OpScore>0.9593677932605241</ns2:OpScore>
+            <ns2:MacthedElement>
+                <ns2:OutputElement>Country</ns2:OutputElement>
+                <ns2:InputElement>Country</ns2:InputElement>
+                <ns2:Score>1.0</ns2:Score>
+            </ns2:MacthedElement>
+            <ns2:MacthedElement>
+                <ns2:OutputElement>Price</ns2:OutputElement>
+                <ns2:InputElement>Cost</ns2:InputElement>
+                <ns2:Score>0.9795276114753246</ns2:Score>
+            </ns2:MacthedElement>
+            <ns2:MacthedElement>
+                <ns2:OutputElement>Region</ns2:OutputElement>
+                <ns2:InputElement>Area</ns2:InputElement>
+                <ns2:Score>0.8985757683062475</ns2:Score>
+            </ns2:MacthedElement>
+        </ns2:MacthedOperation>
+        <ns2:WsScore>0.9593677932605241</ns2:WsScore>
+    </ns2:Macthing>
+</ns2:WSMatching>

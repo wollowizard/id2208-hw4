@@ -1,17 +1,31 @@
 package hw4;
 
 import com.ibm.wsdl.OperationImpl;
+import hw4.generated.MatchedElementType;
+import hw4.generated.MatchedOperationType;
+import hw4.generated.MatchedWebServiceType;
+import hw4.generated.WSMatchingType;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 public class InspectWsdlFile {
 
+    private static double THREASHOLD = 0.85;
+    private static WSMatchingType matching = new WSMatchingType();
+    static WsdlParser p1;
+    static WsdlParser p2;
+    static MatchedWebServiceType t = new MatchedWebServiceType();
+
     public static void main(String[] args) throws Exception {
 
-        WsdlParser p1 = new WsdlParser("xxx.wsdl");
+        p1 = new WsdlParser("drink2.wsdl");
 
-        WsdlParser p2 = new WsdlParser("xxx.wsdl");
+        p2 = new WsdlParser("wine2.wsdl");
 
         List<OperationImpl> arropout = p1.getOperations();
 
@@ -22,6 +36,7 @@ public class InspectWsdlFile {
         //for (OperationImpl op : arropin) {
         // System.out.println(op.getName());
         //}
+
 
 
 
@@ -55,7 +70,7 @@ public class InspectWsdlFile {
                         ArrayList<String> elementsMatchingQnamesIN = p2.getElementsMatchingQnames(q2);
                         //System.out.println("opin: " + opin.getName() + " opout: " + opout.getName());
                         //System.out.println("qname in: " + q2.getLocalPart());
-                        cmpArrays(elementsMatchingQnamesIN, elementsMatchingQnamesOUT);
+                        cmpArrays(elementsMatchingQnamesIN, opin.getName(), elementsMatchingQnamesOUT, opout.getName());
                         qsave = q2;
                     }
                 }
@@ -63,6 +78,24 @@ public class InspectWsdlFile {
 
             }
         }
+
+
+        int count = 0;
+        double sum = 0.0;
+        for (MatchedOperationType mo : t.getMacthedOperation()) {
+            sum += mo.getOpScore();
+            count++;
+        }
+        t.setWsScore(sum / count);
+
+        matching.addMatchedWebServiceType(t);
+
+        File file = new File("output.xml");
+        JAXBContext jc = JAXBContext.newInstance("hw4.generated");
+        Marshaller marshaller = jc.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.marshal(new JAXBElement<WSMatchingType>(new QName("ns2:WSMatching"), WSMatchingType.class, matching), file);
+
 
         /*System.out.println("qsave: " + qsave.getLocalPart()+"\n");
          ArrayList<String> elementsMatchingQnames = p1.getElementsMatchingQnames(qsave);
@@ -74,35 +107,61 @@ public class InspectWsdlFile {
 
     }
 
-    private static void cmpArrays(ArrayList<String> s1, ArrayList<String> s2) {
+    private static void cmpArrays(ArrayList<String> s1, String opin, ArrayList<String> s2, String opout) {
         for (String a : s1) {
-             //System.out.println("AAAAAAAAAAAAA" +a);
+            //System.out.println("AAAAAAAAAAAAA" +a);
         }
 
         //System.out.println("ENDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
 
+        MatchedOperationType mo = new MatchedOperationType();
 
-        for (String a : s1) {
-            for (String b : s2) {
-                double similarity = EditDistance.getSimilarity(a, b);
-                if(similarity>0.8)
-                System.out.println("a: " + a + " b: " + b + " " + similarity);
-                // System.out.println("ENDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
-                 SimilarityAssessor sim = new SimilarityAssessor();
-                 String word1 = a;
-                 String word2 = b;
-                 // you can choose the proper metric among the implemented one by specifying its name.
-                 String metric = SimilarityAssessor.PIRRO_SECO_METRIC;
-                 double score;
-                 try {
-                 score = sim.getSimilarity(word1, word2, metric);
-                 if(score>0.85)
-                     System.out.println("Semantic Similarity between " + word1 + " and " + word2 + " score " + score + " using " + metric + " metric");
-                 } catch (WordNotFoundException e) {
-                 // TODO Auto-generated catch block
-                 e.printStackTrace();
-                 }
+        mo.setInputOperationName(opin);
+        mo.setOutputOperationName(opout);
+        double sum = 0.0;
+        int count = 0;
+
+        boolean entered = false;
+        for (String word1 : s1) {
+            for (String word2 : s2) {
+                try {
+                    double EditDistanceSimilarity = EditDistance.getSimilarity(word1, word2);
+
+                    SimilarityAssessor sim = new SimilarityAssessor();
+                    String metric = SimilarityAssessor.PIRRO_SECO_METRIC;
+                    // you can choose the proper metric among the implemented one by specifying its name.
+
+                    double dictionarySimilarity;
+                    dictionarySimilarity = sim.getSimilarity(word1, word2, metric);
+                    double max = EditDistanceSimilarity;
+                    if (dictionarySimilarity > EditDistanceSimilarity) {
+                        max = dictionarySimilarity;
+                    }
+                    if (max > THREASHOLD) {
+                        entered = true;
+                        MatchedElementType me = new MatchedElementType();
+                        me.setInputElement(word1);
+                        me.setOutputElement(word2);
+                        me.setScore(max);
+                        sum += max;
+                        count++;
+                        mo.addMacthedElement(me);
+                    }
+
+                } catch (WordNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
+        }
+
+
+        if (entered) {
+
+            mo.setOpScore(sum / count);
+            t.addMacthedOperation(mo);
+            t.setInputServiceName(p1.getServiceName());
+            t.setOutputServiceName(p2.getServiceName());
         }
     }
 }

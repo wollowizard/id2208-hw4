@@ -52,6 +52,16 @@ public class WsdlParser {
         services = wsdlInstance.getServices();
     }
 
+    public String getServiceName() {
+        String s = "";
+        Iterator it = services.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry) it.next();
+            s = ((QName) pairs.getKey()).getLocalPart();
+        }
+        return s;
+    }
+
     public List<OperationImpl> getOperations() {
         List<OperationImpl> operations = new ArrayList<>();
         Iterator it = portTypes.entrySet().iterator();
@@ -121,6 +131,7 @@ public class WsdlParser {
             if (o instanceof javax.wsdl.extensions.schema.Schema) {
                 org.w3c.dom.Element elt = ((javax.wsdl.extensions.schema.Schema) o).getElement();
 
+                
                 NodeList nl = elt.getChildNodes();
                 ArrayList<Node> all = new ArrayList<>();
 
@@ -146,6 +157,8 @@ public class WsdlParser {
                                     index = 1;
                                 }
                                 String unqualifiedtype = split[index];
+                                //System.out.println("type: " + type);
+                                //System.out.println("qname:" + qname.getLocalPart());
 
                                 if (isValidType(unqualifiedtype)) {
                                     //System.out.println("type: " + type);
