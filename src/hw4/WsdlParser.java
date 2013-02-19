@@ -115,6 +115,8 @@ public class WsdlParser {
 
     public ArrayList<String> getElementsMatchingQnames(QName qname) {
 
+
+
         ArrayList<String> names = new ArrayList<>();
 
         for (Object o : getExtensibilityElements()) {
@@ -122,6 +124,9 @@ public class WsdlParser {
                 org.w3c.dom.Element elt = ((javax.wsdl.extensions.schema.Schema) o).getElement();
 
                 NodeList nl = elt.getChildNodes();
+
+
+
                 ArrayList<Node> all = new ArrayList<>();
 
                 for (int i = 0; i < nl.getLength(); i++) {
@@ -129,6 +134,8 @@ public class WsdlParser {
                 }
 
                 for (Node ComplexElement : all) {
+
+
 
                     if (ComplexElement.getAttributes() != null && ComplexElement.getAttributes().getNamedItem("name") != null && qname != null && qname.getLocalPart() != null && qname.getLocalPart().equals(ComplexElement.getAttributes().getNamedItem("name").getTextContent())) {
 
@@ -152,9 +159,16 @@ public class WsdlParser {
                                     //System.out.println("qname:" + qname.getLocalPart());
                                     //System.out.println(textContent);
                                     names.add(textContent);
-                                }
+                                } else {
 
+                                    ArrayList< String> names2 = new ArrayList<>();
+                                    getSimpleTypesFromComplex(nl, unqualifiedtype, names);
+                                   
+                                }
                             }
+
+
+
 
                         }
                     }
@@ -199,5 +213,54 @@ public class WsdlParser {
         List<Node> listOfNodes = new ArrayList<Node>();
         addAllNodes(node, listOfNodes);
         return listOfNodes;
+    }
+
+    public static void getSimpleTypesFromComplex(NodeList nl, String name, ArrayList<String> names) {
+        ArrayList<Node> all = new ArrayList<>();
+
+
+
+        for (int i = 0; i < nl.getLength(); i++) {
+            all.addAll(returnAllNodes(nl.item(i)));
+        }
+
+        for (Node ComplexElement : all) {
+            if (ComplexElement.getLocalName() != null && ComplexElement.getLocalName().equals("complexType")) {
+
+
+                if (ComplexElement.getAttributes().getNamedItem("name") != null && ComplexElement.getAttributes().getNamedItem("name").getTextContent().equals(name)) {
+
+                    NodeList childNodes = ComplexElement.getChildNodes();
+                    for (int i = 0; i < childNodes.getLength(); i++) {
+                        List<Node> returnAllNodes = returnAllNodes(childNodes.item(i));
+                        for (Node n : returnAllNodes) {
+                            if (!n.hasChildNodes() && n.getLocalName() != null && n.getLocalName().compareTo("element") == 0) {
+
+                                NamedNodeMap attributes = n.getAttributes();
+                                String textContent = attributes.getNamedItem("name").getTextContent();
+                                String type = attributes.getNamedItem("type").getNodeValue();
+                                String[] split = type.split(":");
+                                int index = 0;
+                                if (split.length == 2) {
+                                    index = 1;
+                                }
+                                String unqualifiedtype = split[index];
+
+                                if (isValidType(unqualifiedtype)) {
+                                    //System.out.println("type: " + type);
+                                    //System.out.println("qname:" + qname.getLocalPart());
+                                    //System.out.println(textContent);
+                                    //System.out.println("aaaaaaaaaaaaaaaa----" +textContent);//
+
+                                    names.add(textContent);
+                                } else {
+                                    getSimpleTypesFromComplex(nl, unqualifiedtype, names);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
