@@ -23,9 +23,9 @@ public class InspectWsdlFile {
 
     public static void main(String[] args) throws Exception {
 
-        WsdlParser p1 = new WsdlParser("drink3.wsdl");
+       p1 = new WsdlParser("drink3.wsdl");
 
-        WsdlParser p2 = new WsdlParser("wine3.wsdl");
+       p2 = new WsdlParser("wine3.wsdl");
 
         List<OperationImpl> arropout = p1.getOperations();
 
